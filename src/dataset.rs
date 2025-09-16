@@ -44,7 +44,9 @@ impl Dataset {
             DatasetType::Train => &self.train_data,
             DatasetType::Test => &self.test_data,
         };
-        let random_index = rand::thread_rng().gen_range(0..data.dim(0)? - BATCH_SIZE);
-        Ok((data.narrow(0, random_index, BATCH_SIZE)?, data.narrow(0, random_index + BATCH_SIZE, BATCH_SIZE)?))
+        let random_index = rand::thread_rng().gen_range(0..data.dim(0)? - BLOCK_SIZE * BATCH_SIZE);
+        let x = data.narrow(0, random_index, BLOCK_SIZE * BATCH_SIZE)?.reshape(&[BATCH_SIZE, BLOCK_SIZE])?;
+        let y = data.narrow(0, random_index + 1, BLOCK_SIZE * BATCH_SIZE)?.reshape(&[BATCH_SIZE, BLOCK_SIZE])?;
+        Ok((x, y))
     }
 }

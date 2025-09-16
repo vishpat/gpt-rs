@@ -16,8 +16,10 @@ fn main() -> Result<()> {
     let vocab = Vocab::new("input.txt", &device)?;
     let dataset = Dataset::new("input.txt", &vocab, &device)?;
     let (x, y) = dataset.get_batch(DatasetType::Train)?;
-    println!("Train data: {:?}", x.shape());
-    println!("Test data: {:?}", y.shape());
+    println!("X shape: {:?}", x.shape());
+    println!("Y shape: {:?}", y.shape());
+    println!("X: {}", x);
+    println!("Y: {}", y);
 
     Ok(())
 }
