@@ -1,0 +1,11 @@
+[package]
+name = "gemma-scratch"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+candle-core = "0.9"
+candle-nn = "0.9"
+candle-transformers = "0.9"
+tokio = { version = "1.0", features = ["full"] }
