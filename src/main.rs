@@ -23,8 +23,9 @@ fn main() -> Result<()> {
     println!("X: {}", x);
     println!("Y: {}", y);
     let bigram = Bigram::new(vocab.len(), &device)?;
-    let logits = bigram.forward(&x, Some(&y))?;
+    let (logits, loss) = bigram.forward(&x, &y)?;
     println!("Logits shape: {:?}", logits.shape());
     println!("Logits: {}", logits);
+    println!("Loss: {}", loss);
     Ok(())
 }

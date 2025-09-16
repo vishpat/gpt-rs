@@ -19,8 +19,14 @@ impl Bigram {
         Ok(Self { embedding: token_embedding, vocab_size, device: device.clone()})
     }
 
-    pub fn forward(&self, x: &Tensor, _target: Option<&Tensor>) -> Result<Tensor> {
+    pub fn forward(&self, x: &Tensor, target: &Tensor) -> Result<(Tensor, Tensor)> {
         let logits = self.embedding.forward(x)?;
-        Ok(logits)
+        let batch_size  = logits.dim(0)?;
+        let time_steps = logits.dim(1)?;
+        let vocab_size = logits.dim(2)?;
+        let logits = logits.reshape(&[batch_size * time_steps, vocab_size])?;
+        let target = target.reshape(&[batch_size * time_steps])?;
+        let loss = candle_nn::loss::cross_entropy(&logits, &target)?;
+        Ok((logits, loss))
     }
 }
