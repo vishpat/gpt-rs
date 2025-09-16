@@ -26,7 +26,7 @@ impl Vocab {
     pub fn encode(&self, text: &str) -> Result<Tensor> {
         let mut vec = Vec::new();
         for char in text.chars() {
-            vec.push(self.map[&char] as f32);
+            vec.push(self.map[&char] as u32);
         }
         let tensor = Tensor::from_slice(&vec, (text.len(), ), &self.device)?;
         Ok(tensor)
@@ -35,11 +35,15 @@ impl Vocab {
     pub fn decode(&self, tensor: &Tensor) -> Result<String> {
         let mut text = String::new();
 
-        let vec = tensor.to_vec1::<f32>()?;
+        let vec = tensor.to_vec1::<u32>()?;
         for index in vec.iter() {
             text.push(self.rev_map[&(*index as usize)]);
         }
         Ok(text)
+    }
+
+    pub fn len(&self) -> usize {
+        self.map.len()
     }
 }
 

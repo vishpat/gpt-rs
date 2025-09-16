@@ -47,7 +47,7 @@ impl Dataset {
 
         let mut x = vec![];
         let mut y = vec![];
-        for i in 0..BATCH_SIZE {
+        for _ in 0..BATCH_SIZE {
             let random_index = rand::thread_rng().gen_range(0..data.dim(0)? - BLOCK_SIZE  - 1);
             let xi = data.narrow(0, random_index, BLOCK_SIZE)?;
             let yi = data.narrow(0, random_index + 1, BLOCK_SIZE)?;
