@@ -2,7 +2,7 @@ use anyhow::Result;
 use candle_core::{Device, Tensor};
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::Read;
 use std::rc::Rc;
 
 #[derive(Debug)]
@@ -29,7 +29,6 @@ impl Vocab {
             vec.push(self.map[&char] as f32);
         }
         let tensor = Tensor::from_slice(&vec, (text.len(), ), &self.device)?;
-        println!("{:?}", tensor);
         Ok(tensor)
     }
 
@@ -45,14 +44,14 @@ impl Vocab {
 }
 
 fn get_vocab_map(path: &str) -> Result<HashMap<char, usize>> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
+    
+    let mut file = File::open(path)?;
+    let mut data = String::new();
+    file.read_to_string(&mut data)?;
+
     let mut set = HashSet::new();
-    for line in reader.lines() {
-        let line = line?;
-        for char in line.chars() {
-            set.insert(char);
-        }
+    for char in data.chars() {
+        set.insert(char);
     }
     let mut map = HashMap::new();
     for (i, char) in set.iter().enumerate() {
