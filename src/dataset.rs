@@ -54,6 +54,6 @@ impl Dataset {
             x.push(xi);
             y.push(yi);
         }
-        Ok((Tensor::stack(&x, 0)?, Tensor::stack(&y, 0)?))
+        Ok((Tensor::stack(&x, 0)?.to_device(&self.device)?, Tensor::stack(&y, 0)?.to_device(&self.device)?))
     }
 }
