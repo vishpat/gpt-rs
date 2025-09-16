@@ -3,7 +3,7 @@ mod dataset;
 mod bigram;
 
 use anyhow::Result;
-use candle_core::Device;
+use candle_core::{Device, IndexOp};
 use std::rc::Rc;
 
 use vocab::Vocab;
@@ -18,14 +18,15 @@ fn main() -> Result<()> {
     let vocab = Vocab::new("input.txt", &device)?;
     let dataset = Dataset::new("input.txt", &vocab, &device)?;
     let (x, y) = dataset.get_batch(DatasetType::Train)?;
-    println!("X shape: {:?}", x.shape());
-    println!("Y shape: {:?}", y.shape());
-    println!("X: {}", x);
-    println!("Y: {}", y);
     let bigram = Bigram::new(vocab.len(), &device)?;
-    let (logits, loss) = bigram.forward(&x, &y)?;
-    println!("Logits shape: {:?}", logits.shape());
-    println!("Logits: {}", logits);
-    println!("Loss: {}", loss);
+    let (_logits, _loss) = bigram.forward(&x, &y)?;
+    let generated = bigram.generate(&x, 100)?;
+    
+    // Decode the generated tokens to text for better readability
+    for i in 0..generated.dim(0)? {
+        let batch_tokens = generated.i(i)?;
+        let text = vocab.decode(&batch_tokens)?;
+        println!("Generated text (batch {}): {}", i, text);
+    }
     Ok(())
 }
