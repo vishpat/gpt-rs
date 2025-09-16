@@ -44,9 +44,16 @@ impl Dataset {
             DatasetType::Train => &self.train_data,
             DatasetType::Test => &self.test_data,
         };
-        let random_index = rand::thread_rng().gen_range(0..data.dim(0)? - BLOCK_SIZE * BATCH_SIZE);
-        let x = data.narrow(0, random_index, BLOCK_SIZE * BATCH_SIZE)?.reshape(&[BATCH_SIZE, BLOCK_SIZE])?;
-        let y = data.narrow(0, random_index + 1, BLOCK_SIZE * BATCH_SIZE)?.reshape(&[BATCH_SIZE, BLOCK_SIZE])?;
-        Ok((x, y))
+
+        let mut x = vec![];
+        let mut y = vec![];
+        for i in 0..BATCH_SIZE {
+            let random_index = rand::thread_rng().gen_range(0..data.dim(0)? - BLOCK_SIZE  - 1);
+            let xi = data.narrow(0, random_index, BLOCK_SIZE)?;
+            let yi = data.narrow(0, random_index + 1, BLOCK_SIZE)?;
+            x.push(xi);
+            y.push(yi);
+        }
+        Ok((Tensor::stack(&x, 0)?, Tensor::stack(&y, 0)?))
     }
 }
