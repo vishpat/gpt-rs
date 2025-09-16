@@ -1,10 +1,9 @@
 use anyhow::Result;
-use candle_core::{Device, Tensor, DType};
-use std::fs::File;
-use std::io::{BufReader, BufRead};
+use candle_core::{DType, Device, Tensor};
 use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::rc::Rc;
-
 
 struct Vocab {
     device: Rc<Device>,
@@ -16,7 +15,11 @@ impl Vocab {
     fn new(path: &str, device: &Rc<Device>) -> Result<Self> {
         let map = get_vocab_map(path)?;
         let rev_map = map.iter().map(|(k, v)| (*v, *k)).collect();
-        Ok(Self {device: device.clone(), map, rev_map})
+        Ok(Self {
+            device: device.clone(),
+            map,
+            rev_map,
+        })
     }
 
     fn encode(&self, text: &str) -> Result<Tensor> {
@@ -24,13 +27,14 @@ impl Vocab {
         for char in text.chars() {
             vec.push(self.map[&char] as f32);
         }
-        let tensor = Tensor::from_slice(&vec, (text.len(), 1), &self.device)?;
+        let tensor = Tensor::from_slice(&vec, (text.len(), ), &self.device)?;
+        println!("{:?}", tensor);
         Ok(tensor)
     }
 
     fn decode(&self, tensor: &Tensor) -> Result<String> {
         let mut text = String::new();
-        
+
         let vec = tensor.to_vec1::<f32>()?;
         for index in vec.iter() {
             text.push(self.rev_map[&(*index as usize)]);
@@ -38,8 +42,6 @@ impl Vocab {
         Ok(text)
     }
 }
-
-
 
 fn get_vocab_map(path: &str) -> Result<HashMap<char, usize>> {
     let file = File::open(path)?;
@@ -63,8 +65,8 @@ fn main() -> Result<()> {
     let vocab = Vocab::new("input.txt", &device)?;
     let text = "Hello, world!";
     let encoded = vocab.encode(text)?;
-    println!("{:?}", encoded);
+    println!("Encoded: {:?}", encoded);
     let decoded = vocab.decode(&encoded)?;
-    println!("{:?}", decoded);
+    println!("Decoded: {:?}", decoded);
     Ok(())
 }
