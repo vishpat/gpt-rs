@@ -1,4 +1,4 @@
-use candle_nn::{embedding, Embedding, VarBuilder, VarMap};
+use candle_nn::{embedding, linear, Embedding, VarBuilder, VarMap, Linear};
 use candle_core::Module;
 use std::rc::Rc;
 use candle_core::{Device, DType, IndexOp};
@@ -9,17 +9,20 @@ use log::debug;
 
 pub struct Bigram {
     embedding: Embedding,
+    linear: Linear,
     vocab_size: usize,
 }
 
 impl Bigram {
     pub fn new(vocab_size: usize, vb: &VarBuilder) -> Result<Self> {
-        let token_embedding = embedding(vocab_size, vocab_size, vb.pp("embedding"))?;
-        Ok(Self { embedding: token_embedding, vocab_size})
+        let token_embedding = embedding(vocab_size, 2*vocab_size, vb.pp("embedding"))?;
+        let token_linear = linear(2*vocab_size, vocab_size, vb.pp("linear"))?;
+        Ok(Self { embedding: token_embedding, linear: token_linear, vocab_size})
     }
 
     pub fn forward(&self, x: &Tensor, target: &Tensor) -> Result<(Tensor, Tensor)> {
         let logits = self.embedding.forward(x)?;
+        let logits = self.linear.forward(&logits)?;
         let batch_size  = logits.dim(0)?;
         let time_steps = logits.dim(1)?;
         let vocab_size = logits.dim(2)?;
@@ -33,6 +36,7 @@ impl Bigram {
         let mut x = x.clone();
         for _ in 0..max_new_tokens {
             let logits = self.embedding.forward(&x)?;
+            let logits = self.linear.forward(&logits)?;
             let last_index = logits.dim(1)? - 1;
             let logits = logits.i((.., last_index, ..))?.squeeze(1)?;
             let logits = logits.contiguous()?;

@@ -33,7 +33,7 @@ fn main() -> Result<()> {
     };
     let mut optimizer = AdamW::new(varmap.all_vars(), params)?;
     
-    for _ in 0..1000 {
+    for _ in 0..300 {
         let (x, y) = dataset.get_batch(DatasetType::Train)?;
         let (_logits, loss) = bigram.forward(&x, &y)?;
         
@@ -43,7 +43,7 @@ fn main() -> Result<()> {
 
     let x = vocab.encode("\n")?.reshape(&[1, 1])?;
     debug!("X: {}", x);
-    let generated = bigram.generate(&x, 100)?;
+    let generated = bigram.generate(&x, 300)?;
     let text = vocab.decode(&generated.squeeze(0)?)?;
     info!("Generated text: {}", text);
    
