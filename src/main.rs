@@ -4,7 +4,7 @@ mod bigram;
 
 use anyhow::Result;
 use candle_core::{Device };
-use candle_nn::{Optimizer, AdamW, ParamsAdamW, VarBuilder, VarMap, SGD};
+use candle_nn::{Optimizer, AdamW, ParamsAdamW, VarBuilder, VarMap};
 use candle_core::DType;
 use std::rc::Rc;
 use log::{info, debug};
@@ -14,7 +14,7 @@ use dataset::{Dataset, DatasetType};
 use bigram::Bigram;
 
 const BLOCK_SIZE: usize = 8;
-const BATCH_SIZE: usize = 4;
+const BATCH_SIZE: usize = 32;
 
 fn main() -> Result<()> {
 
@@ -26,14 +26,18 @@ fn main() -> Result<()> {
 
     let varmap = VarMap::new();
     let vb = VarBuilder::from_varmap(&varmap, DType::F32, &device.clone());
-
     let bigram = Bigram::new(vocab.len(), &vb)?;
-    let mut sgd = SGD::new(varmap.all_vars(), 0.01)?;
+    let params = ParamsAdamW {
+        lr: 0.01,
+        ..Default::default()
+    };
+    let mut optimizer = AdamW::new(varmap.all_vars(), params)?;
     
-    for _ in 0..100 {
+    for _ in 0..1000 {
         let (x, y) = dataset.get_batch(DatasetType::Train)?;
         let (_logits, loss) = bigram.forward(&x, &y)?;
-        sgd.backward_step(&loss)?;
+        
+        optimizer.backward_step(&loss)?;
         info!("Loss: {}", loss);
     }    
 
