@@ -5,6 +5,7 @@ use candle_core::{Device, DType, IndexOp};
 use anyhow::Result;
 use candle_core::Tensor;
 use rand::Rng;
+use log::debug;
 
 pub struct Bigram {
     embedding: Embedding,
@@ -35,22 +36,21 @@ impl Bigram {
         let mut x = x.clone();
         for _ in 0..max_new_tokens {
             let logits = self.embedding.forward(&x)?;
+            debug!("Logits: {}", logits);
             let last_index = logits.dim(1)? - 1;
             let logits = logits.i((.., last_index, ..))?.squeeze(1)?;
-            
-            // Ensure the tensor is contiguous before applying softmax
+            debug!("Logits: {}", logits);
             let logits = logits.contiguous()?;
+            debug!("Logits: {}", logits);
             let probs = candle_nn::ops::softmax_last_dim(&logits)?;
-            
-            // Sample the next token using categorical sampling
+            debug!("Probs: {}", probs);
             let next_token = self.sample_from_probs(&probs)?;
-            
-            // Reshape next_token to have the same batch dimension as x
+            debug!("Next token: {}", next_token);
             let next_token = next_token.unsqueeze(1)?;
-            
-            // Concatenate along the sequence dimension (dim 1)
+            debug!("Next token: {}", next_token);
             x = Tensor::cat(&[&x, &next_token], 1)?;
         }
+        debug!("Done generating X: {}", x);
         Ok(x)
     }
 
