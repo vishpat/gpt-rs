@@ -36,21 +36,14 @@ impl Bigram {
         let mut x = x.clone();
         for _ in 0..max_new_tokens {
             let logits = self.embedding.forward(&x)?;
-            debug!("Logits: {}", logits);
             let last_index = logits.dim(1)? - 1;
             let logits = logits.i((.., last_index, ..))?.squeeze(1)?;
-            debug!("Logits: {}", logits);
             let logits = logits.contiguous()?;
-            debug!("Logits: {}", logits);
             let probs = candle_nn::ops::softmax_last_dim(&logits)?;
-            debug!("Probs: {}", probs);
             let next_token = self.sample_from_probs(&probs)?;
-            debug!("Next token: {}", next_token);
             let next_token = next_token.unsqueeze(1)?;
-            debug!("Next token: {}", next_token);
             x = Tensor::cat(&[&x, &next_token], 1)?;
         }
-        debug!("Done generating X: {}", x);
         Ok(x)
     }
 
