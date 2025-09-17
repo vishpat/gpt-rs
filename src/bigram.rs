@@ -10,15 +10,12 @@ use log::debug;
 pub struct Bigram {
     embedding: Embedding,
     vocab_size: usize,
-    device: Rc<Device>,
 }
 
 impl Bigram {
-    pub fn new(vocab_size: usize, device: &Rc<Device>) -> Result<Self> {
-        let varmap = VarMap::new();
-        let vb = VarBuilder::from_varmap(&varmap, DType::F32, &device.clone());
-        let token_embedding = embedding(vocab_size, vocab_size, vb)?;
-        Ok(Self { embedding: token_embedding, vocab_size, device: device.clone()})
+    pub fn new(vocab_size: usize, vb: &VarBuilder) -> Result<Self> {
+        let token_embedding = embedding(vocab_size, vocab_size, vb.pp("embedding"))?;
+        Ok(Self { embedding: token_embedding, vocab_size})
     }
 
     pub fn forward(&self, x: &Tensor, target: &Tensor) -> Result<(Tensor, Tensor)> {
