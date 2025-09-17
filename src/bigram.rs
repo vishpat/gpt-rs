@@ -28,7 +28,10 @@ impl Bigram {
         let vocab_size = logits.dim(2)?;
         let logits = logits.reshape(&[batch_size * time_steps, vocab_size])?;
         let target = target.reshape(&[batch_size * time_steps])?;
+        debug!("forward Logits: {}", logits);
+        debug!("forward Target: {}", target);
         let loss = candle_nn::loss::cross_entropy(&logits, &target)?;
+        debug!("forward Loss: {}", loss);
         Ok((logits, loss))
     }
 
